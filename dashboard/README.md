@@ -60,6 +60,20 @@ với token đó. Font Be Vietnam Pro (@fontsource) và icon lucide được đ�
 ngoài, nên VPS không cần ra internet. Dấu bốn góc khung (lớp `.bracketed`) chỉ dành cho thứ đang được chú
 ý; dải sọc hổ phách chỉ dành cho số giả.
 
+## Deploy lên Vercel
+
+`vercel.json` ở thư mục gốc khai báo hai service trong cùng một project, chung một domain:
+
+- `api` (gốc `dashboard/`, FastAPI, `api.main:app`) nhận mọi request `/api/*`. Cài gói từ
+  `dashboard/requirements.txt` (bản rút gọn, không có torch). Lệnh build chép `sample_data_output1/`
+  vào `dashboard/` vì function chỉ đóng gói thư mục gốc của service; `settings.py` tự tìm bản chép đó.
+- `web` (gốc `dashboard/web/`, Vite) nhận mọi đường dẫn còn lại; đường dẫn không phải file tĩnh trả
+  `index.html` để React Router xử lý.
+
+Frontend gọi `/api/...` cùng domain nên không cần biến môi trường nào. Chạy thử cả hai cùng lúc:
+`vercel dev` ở thư mục gốc. Trên Vercel, ổ đĩa chỉ đọc được, nên muốn dùng dữ liệu thật thì commit
+bảng vào `dashboard/data_real/`.
+
 ## Các trang
 
 | Nhóm | Trang | Trả lời câu hỏi |

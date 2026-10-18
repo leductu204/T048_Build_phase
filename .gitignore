@@ -34,3 +34,8 @@ ENV/
 Thumbs.db
 .vscode/
 .idea/
+
+# Vercel
+.vercel/
+# Bản chép bộ đáp án do lệnh build của service "api" tạo ra (xem vercel.json)
+/dashboard/sample_data_output1/

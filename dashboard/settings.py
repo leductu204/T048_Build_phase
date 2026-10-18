@@ -13,6 +13,9 @@ PROJECT_DIR = DASH_DIR.parent
 
 # Bộ đáp án BDD100K (200 ảnh) dùng để sinh dữ liệu giả và hiển thị ảnh.
 SAMPLE_DIR = PROJECT_DIR / "sample_data_output1"
+# Service "api" trên Vercel chỉ đóng gói dashboard/, nên lệnh build (vercel.json) chép bộ này vào đây.
+if not SAMPLE_DIR.exists():
+    SAMPLE_DIR = DASH_DIR / "sample_data_output1"
 GT_XML = SAMPLE_DIR / "annotations.xml"
 IMAGES_ZIP = SAMPLE_DIR / "images.zip"
 
