@@ -16,7 +16,7 @@ from fastapi.responses import JSONResponse, Response
 import catalog
 import settings as S
 from api import blocks as B
-from api.pages import BUILDERS, PORTED, data_status, issue_detail
+from api.pages import BUILDERS, PORTED, data_status, issue_detail, patch_detail
 from api.params import Selection, dataset, selection, source
 from data_layer import datasets, store
 from ui import theme
@@ -26,6 +26,7 @@ Data = Annotated[store.Tables, Depends(dataset)]
 Source = Annotated[str, Depends(source)]
 Sel = Annotated[Selection, Depends(selection)]
 ISSUE_PAGE = catalog.PAGES["chi-tiet-issue"]
+AGENT_PAGE = catalog.PAGES["sua-agent"]
 
 
 @app.exception_handler(FileNotFoundError)
@@ -105,6 +106,44 @@ def issue_one(issue_id: str, data: Data):
 @app.get("/api/issues/{issue_id}/crop.jpg")
 def issue_image(issue_id: str, data: Data):
     content = issue_detail.picture(data, _issue(data, issue_id))
+    if content is None:
+        raise HTTPException(404, "Không tìm thấy ảnh trong file zip.")
+    return Response(content, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=300"})
+
+
+@app.get("/api/patches")
+def patch_list(data: Data, sel: Sel):
+    """Danh sách cho phần "Xem một bản vá" ở cuối trang sua-agent."""
+    if data.gaps(**AGENT_PAGE["requires"]):
+        return {"hidden": True}  # phần phân tích phía trên đã báo trang chưa có dữ liệu
+    listed = patch_detail.listing(data, sel.filters_for(AGENT_PAGE))
+    gaps = data.gaps(issues=[])
+    if listed.get("items") and gaps:
+        return {"pending": "Chưa có dữ liệu cho phần này. " + " ".join(gaps)}
+    return listed
+
+
+def _patch(data: store.Tables, patch_id: str):
+    patch = patch_detail.find(data, patch_id) if data.available("patches") else None
+    if patch is None:
+        raise HTTPException(404, f"Không có bản vá {patch_id}.")
+    return patch
+
+
+@app.get("/api/patches/{patch_id}")
+def patch_one(patch_id: str, data: Data):
+    patch = _patch(data, patch_id)
+    issue = patch_detail.issue_of(data, patch)
+    if issue is None:
+        return {"id": patch_id, "empty": f"Bảng issues không có issue {patch['issue_id']} của bản vá này."}
+    return patch_detail.detail(data, patch, issue)
+
+
+@app.get("/api/patches/{patch_id}/crop.jpg")
+def patch_image(patch_id: str, data: Data):
+    patch = _patch(data, patch_id)
+    issue = patch_detail.issue_of(data, patch)
+    content = None if issue is None else patch_detail.picture(data, patch, issue)
     if content is None:
         raise HTTPException(404, "Không tìm thấy ảnh trong file zip.")
     return Response(content, media_type="image/jpeg", headers={"Cache-Control": "private, max-age=300"})

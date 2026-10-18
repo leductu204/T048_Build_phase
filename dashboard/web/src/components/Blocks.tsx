@@ -65,8 +65,19 @@ function BlockView({ block }: { block: Block }) {
     case "table":
       return (
         <Panel title={block.title} note={block.note}>
-          <DataTable frame={block.table} />
+          <DataTable frame={block.table} formats={block.formats} />
         </Panel>
+      );
+    case "heading":
+      return (
+        <header className="mt-6">
+          <h2 className="text-[20px] font-semibold tracking-[-0.01em]">{block.title}</h2>
+          {block.note && (
+            <p className="mt-1.5 max-w-[46em] text-[14px] leading-relaxed text-ink2">
+              <RichText text={block.note} />
+            </p>
+          )}
+        </header>
       );
     case "pending":
       return (

@@ -31,11 +31,14 @@ export type Cell = string | number | boolean | null;
 export type Frame = { columns: string[]; rows: Cell[][] };
 export type Kpi = { label: string; value: string | null; hint: string | null; primary: boolean };
 export type Tone = "info" | "warning" | "simulated" | "pending" | "empty";
+/** Cách hiện một cột bảng (api/blocks.py: col). `percent`: cột 0–100 vẽ thành thanh. */
+export type ColumnFormat = { decimals: number | null; suffix: string; percent: boolean };
 
 export type Block =
   | { type: "kpis"; items: Kpi[] }
   | { type: "chart"; title: string; note: string | null; spec: VisualizationSpec; table: Frame | null }
-  | { type: "table"; title: string; note: string | null; table: Frame }
+  | { type: "table"; title: string; note: string | null; table: Frame; formats: Record<string, ColumnFormat> }
+  | { type: "heading"; title: string; note: string | null }
   | { type: "pending"; title: string; message: string }
   | { type: "notice"; tone: Tone; message: string }
   | { type: "empty"; message: string };
@@ -67,6 +70,32 @@ export type IssueDetail = {
   crop: { width: number; height: number; boxes: Record<Layer, Box | null> } | null;
   handling: { title: string; detail: string; caption: string | null } | null;
 };
+
+export type PatchItem = { id: string; operation: string; decision: string; class_name: string };
+
+/** `hidden`: phần phân tích phía trên đã báo trang chưa có dữ liệu hoặc trống sau khi lọc. */
+export type PatchList =
+  | { hidden: true }
+  | { pending: string }
+  | { total: number; max_listed: number; has_truth: boolean; items: PatchItem[] };
+
+/** Ba khung của một bản vá, theo thứ tự trước khi sửa, agent đề xuất, sau khi áp dụng. */
+export type PatchLayer = "submitted" | "proposed" | "final";
+
+export type PatchDetail =
+  | { id: string; empty: string }
+  | {
+      id: string;
+      issue_id: string;
+      image: string;
+      operation: string;
+      decision: string;
+      reviewer: string;
+      comment: string | null;
+      has_truth: boolean;
+      panels: { key: PatchLayer; title: string; has_box: boolean; class_name: string | null }[];
+      crop: { width: number; height: number; boxes: Record<PatchLayer | "truth", Box | null> } | null;
+    };
 
 export type DataStatus = {
   kpis: { type: "kpis"; items: Kpi[] };

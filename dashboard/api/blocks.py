@@ -7,6 +7,7 @@ Biểu đồ là spec Vega-Lite do ui/charts.py dựng, frontend vẽ bằng veg
 from __future__ import annotations
 
 import json
+from dataclasses import dataclass
 from typing import Callable
 
 import pandas as pd
@@ -44,8 +45,37 @@ def chart(title: str, figure, note: str | None = None, table: pd.DataFrame | Non
             "table": frame(table) if table is not None else None}
 
 
-def table(title: str, df: pd.DataFrame, note: str | None = None) -> dict:
-    return {"type": "table", "title": title, "note": note, "table": frame(df)}
+@dataclass(frozen=True)
+class Col:
+    """Cách hiện một cột của thẻ bảng, thay cho st.column_config của bản Streamlit.
+
+    `decimals`: số chữ số sau dấu phẩy ("%.1f" -> 1). `suffix`: chữ sau số ("%.2f lần" -> " lần").
+    `percent`: cột 0–100 hiện thành thanh phần trăm (ui.percent_column).
+    """
+    label: str
+    decimals: int | None = None
+    suffix: str = ""
+    percent: bool = False
+
+
+def col(label: str, decimals: int | None = None, suffix: str = "", percent: bool = False) -> Col:
+    return Col(label, decimals, suffix, percent)
+
+
+def table(title: str, df: pd.DataFrame, note: str | None = None, columns: dict[str, str | Col] | None = None) -> dict:
+    """Thẻ bảng. `columns`: tên cột -> nhãn hoặc `col(...)`; chỉ hiện các cột này, theo đúng thứ tự."""
+    formats = {}
+    if columns:
+        specs = {name: spec if isinstance(spec, Col) else Col(spec) for name, spec in columns.items()}
+        df = df[list(specs)].rename(columns={name: spec.label for name, spec in specs.items()})
+        formats = {spec.label: {"decimals": spec.decimals, "suffix": spec.suffix, "percent": spec.percent}
+                   for spec in specs.values() if spec.decimals is not None or spec.suffix or spec.percent}
+    return {"type": "table", "title": title, "note": note, "table": frame(df), "formats": formats}
+
+
+def heading(title: str, note: str | None = None) -> dict:
+    """Tiêu đề một mục trong trang, cả hàng (st.subheader cùng st.caption của bản Streamlit)."""
+    return {"type": "heading", "title": title, "note": note}
 
 
 def notice(message: str, tone: str = "info") -> dict:

@@ -31,7 +31,7 @@ function Brand() {
   );
 }
 
-/** Chọn bộ dữ liệu. Đổi bộ thì bỏ lựa chọn chỉ đúng với bộ cũ (annotator, issue đang xem). */
+/** Chọn bộ dữ liệu. Đổi bộ thì bỏ lựa chọn chỉ đúng với bộ cũ (annotator, issue và bản vá đang xem). */
 function DatasetPicker({ meta }: { meta: Meta }) {
   const { update } = useView();
   if (meta.datasets.length === 0) return null;
@@ -41,6 +41,7 @@ function DatasetPicker({ meta }: { meta: Meta }) {
       else next.delete("ds");
       next.delete("annotator");
       next.delete("issue");
+      next.delete("patch");
     });
   return (
     <label className="block shrink-0 px-5 pb-3">

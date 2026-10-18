@@ -39,8 +39,12 @@ npm run dev          # mở http://localhost:5173
 Vite chuyển mọi request `/api` sang `http://127.0.0.1:8000`. API chạy cổng khác thì đặt biến môi
 trường `M22_API_URL` trước `npm run dev`, ví dụ `M22_API_URL=http://127.0.0.1:8010`.
 
-Đã chuyển: Tổng quan, Chi tiết issue, Nguồn dữ liệu. Các trang khác hiện "sắp có" và vẫn xem được ở
-bản Streamlit; hai bản dùng chung `data_layer/` và `catalog.py` nên chạy song song được.
+Đã chuyển đủ 11 trang. Phần "Xem một bản vá" của trang Agent đề xuất là component riêng
+(`web/src/pages/PatchViewer.tsx`, route `/api/patches`) vẽ dưới các khối chung. Bản Streamlit vẫn chạy
+song song vì hai bản dùng chung `data_layer/` và `catalog.py`.
+
+Bảng trong trang phân tích dùng `B.table(..., columns=...)`: tên cột -> nhãn hoặc `B.col(nhãn, decimals=,
+suffix=, percent=)`, thay cho `st.column_config`. Tiêu đề một mục giữa trang dùng `B.heading`.
 
 Chuyển thêm một trang phân tích:
 

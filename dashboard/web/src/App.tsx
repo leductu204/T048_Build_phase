@@ -14,12 +14,17 @@ import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { DataStatusPage } from "./pages/DataStatusPage";
 import { IssueDetailPage } from "./pages/IssueDetailPage";
 import { NotPortedPage } from "./pages/NotPortedPage";
+import { PatchViewer } from "./pages/PatchViewer";
 
 const HOME = "tong-quan";
 // Trang tra cứu có giao diện riêng; mọi trang khác vẽ bằng khối chung.
 const CUSTOM: Record<string, ComponentType> = {
   "chi-tiet-issue": IssueDetailPage,
   "nguon-du-lieu": DataStatusPage,
+};
+// Phần tương tác vẽ thêm dưới các khối chung của trang phân tích.
+const EXTRA: Record<string, ComponentType> = {
+  "sua-agent": PatchViewer,
 };
 
 const queryClient = new QueryClient({
@@ -44,6 +49,7 @@ function PageRoute({ meta }: { meta: Meta }) {
 
   if (!page) return <Navigate to={{ pathname: `/${HOME}`, search }} replace />;
   const Custom = CUSTOM[page.path];
+  const Extra = EXTRA[page.path];
   return (
     <>
       <PageHeader page={page} meta={meta} />
@@ -51,7 +57,16 @@ function PageRoute({ meta }: { meta: Meta }) {
       {page.ported && page.filters.length > 0 && <FilterBar page={page} options={meta.options} />}
       <div className="mt-6">
         <PageBoundary key={page.path}>
-          {!page.ported ? <NotPortedPage /> : Custom ? <Custom /> : <AnalyticsPage page={page} />}
+          {!page.ported ? (
+            <NotPortedPage />
+          ) : Custom ? (
+            <Custom />
+          ) : (
+            <>
+              <AnalyticsPage page={page} />
+              {Extra && <Extra />}
+            </>
+          )}
         </PageBoundary>
       </div>
     </>
