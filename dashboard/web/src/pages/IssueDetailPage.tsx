@@ -7,7 +7,7 @@ import { FilterChip } from "../components/FilterChip";
 import { EmptyState, ErrorState, Notice, Panel, Skeleton } from "../components/ui";
 import { apiGet, apiUrl, type IssueDetail, type IssueItem, type IssueList, type Layer } from "../lib/api";
 import { shortTime } from "../lib/format";
-import { apiParams, demoParams, useView } from "../lib/view";
+import { apiParams, sourceParams, useView } from "../lib/view";
 
 const ALL = "";
 // Cùng màu khung box với dashboard/ui/theme.py: trắng là reviewer, cam là annotator, xanh dương là đáp án.
@@ -88,7 +88,7 @@ function Viewer({
   toggle: (layer: Layer) => void;
 }) {
   const { sp } = useView();
-  const src = apiUrl(`/issues/${encodeURIComponent(issue.id)}/crop.jpg`, demoParams(sp));
+  const src = apiUrl(`/issues/${encodeURIComponent(issue.id)}/crop.jpg`, sourceParams(sp));
   const [state, setState] = useState<{ src: string; ok: boolean } | null>(null);
   const crop = issue.crop;
   const loaded = state?.src === src;
@@ -196,7 +196,7 @@ function Message({ role, name, time, text }: { role: "reviewer" | "annotator"; n
 
 function Detail({ id, layers, toggle }: { id: string; layers: Record<Layer, boolean>; toggle: (layer: Layer) => void }) {
   const { sp } = useView();
-  const params = demoParams(sp);
+  const params = sourceParams(sp);
   const query = useQuery({
     queryKey: ["issue", id, params.toString()],
     queryFn: () => apiGet<IssueDetail>(`/issues/${encodeURIComponent(id)}`, params),

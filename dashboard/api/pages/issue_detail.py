@@ -83,7 +83,7 @@ def _boxes(issue: pd.Series, data: store.Tables) -> dict[str, images.Box | None]
 
 def _view(issue: pd.Series, data: store.Tables) -> images.View | None:
     # Vùng cắt luôn gồm cả đáp án, để bật tắt lớp đáp án không làm ảnh nhảy.
-    return images.view(issue["image"], list(_boxes(issue, data).values()), min_width=CROP_WIDTH)
+    return images.view(issue["image"], list(_boxes(issue, data).values()), min_width=CROP_WIDTH, archive=data.images)
 
 
 def detail(data: store.Tables, issue: pd.Series) -> dict:

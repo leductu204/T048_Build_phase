@@ -23,6 +23,13 @@ IMAGES_ZIP = SAMPLE_DIR / "images.zip"
 # Đặt biến môi trường M22_REAL_DIR để trỏ sang thư mục khác, ví dụ thư mục xuất của pipeline.
 REAL_DIR = Path(os.environ.get("M22_REAL_DIR") or DASH_DIR / "data_real")
 
+# Các bộ dữ liệu khác để chọn trên giao diện (xem data_layer/datasets.py). Trên máy: mỗi thư mục con
+# của DATASETS_DIR là một bộ. Trên Vercel Blob: mỗi thư mục BLOB_PREFIX<tên bộ>/ là một bộ.
+DATASETS_DIR = Path(os.environ.get("M22_DATASETS_DIR") or DASH_DIR / "datasets")
+BLOB_PREFIX = "datasets/"
+# Phải khớp chế độ của store lúc tạo; dữ liệu thật thì dùng store private.
+BLOB_ACCESS = os.environ.get("M22_BLOB_ACCESS", "private")
+
 # ---------- Bảng mã: mã trong dữ liệu -> nhãn trên giao diện ----------
 
 CLASSES = ["car", "traffic sign", "traffic light", "person", "truck", "bus", "bike", "rider", "motor", "train"]

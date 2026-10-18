@@ -10,6 +10,7 @@ import io
 import zipfile
 from dataclasses import dataclass
 from functools import lru_cache
+from pathlib import Path
 
 import pandas as pd
 from PIL import Image, ImageDraw
@@ -20,14 +21,19 @@ Box = tuple[float, float, float, float]
 
 
 @lru_cache(maxsize=64)
-def _raw(name: str) -> bytes | None:
-    if not S.IMAGES_ZIP.exists():
-        return None
-    with zipfile.ZipFile(S.IMAGES_ZIP) as archive:
+def _read(archive: str, mtime: float, name: str) -> bytes | None:
+    with zipfile.ZipFile(archive) as zf:
         try:
-            return archive.read(name)
+            return zf.read(name)
         except KeyError:
             return None
+
+
+def _raw(archive: Path, name: str) -> bytes | None:
+    """Ảnh `name` trong file zip; khoá đệm gồm thời điểm sửa file, nên thay zip là đọc lại."""
+    if not archive.exists():
+        return None
+    return _read(str(archive), archive.stat().st_mtime, name)
 
 
 def box_of(row, prefix: str) -> Box | None:
@@ -45,6 +51,7 @@ class View:
     right: int
     bottom: int
     scale: float
+    archive: Path = S.IMAGES_ZIP
 
     @property
     def width(self) -> int:
@@ -63,19 +70,20 @@ class View:
         return xs[0], ys[0], xs[1], ys[1]
 
     def image(self) -> Image.Image:
-        img = Image.open(io.BytesIO(_raw(self.name))).convert("RGB")
+        img = Image.open(io.BytesIO(_raw(self.archive, self.name))).convert("RGB")
         out = img.crop((self.left, self.top, self.right, self.bottom))
         if self.scale > 1:
             out = out.resize((self.width, self.height), Image.LANCZOS)
         return out
 
 
-def view(name: str, frame: list[Box | None], min_width: int = 520) -> View | None:
+def view(name: str, frame: list[Box | None], min_width: int = 520, archive: Path = S.IMAGES_ZIP) -> View | None:
     """Vùng cắt quanh các box trong `frame`, chừa lề để thấy bối cảnh. None nếu không có ảnh.
 
     Truyền cùng một `frame` cho nhiều ảnh để chúng cắt đúng một vùng và so được với nhau.
+    `archive`: file zip chứa ảnh của bộ dữ liệu đang xem.
     """
-    raw = _raw(name)
+    raw = _raw(archive, name)
     if raw is None:
         return None
     width, height = Image.open(io.BytesIO(raw)).size  # chỉ đọc phần đầu file
@@ -89,7 +97,7 @@ def view(name: str, frame: list[Box | None], min_width: int = 520) -> View | Non
     else:
         left, top, right, bottom = 0, 0, width, height
     scale = min(6.0, max(1.0, min_width / (right - left)))
-    return View(name, left, top, right, bottom, scale)
+    return View(name, left, top, right, bottom, scale, archive)
 
 
 def crop(name: str, boxes: list[tuple[Box | None, str]], frame: list[Box | None] | None = None,

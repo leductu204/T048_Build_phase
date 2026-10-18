@@ -16,6 +16,9 @@ export type PageInfo = {
 };
 
 export type Meta = {
+  /** Bộ dữ liệu đang xem; rỗng là bộ mặc định. */
+  dataset: string;
+  datasets: string[];
   mode: "real" | "mock";
   has_real_files: boolean;
   n_real: number;

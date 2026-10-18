@@ -39,3 +39,5 @@ Thumbs.db
 .vercel/
 # Bản chép bộ đáp án do lệnh build của service "api" tạo ra (xem vercel.json)
 /dashboard/sample_data_output1/
+# Các bộ dữ liệu thật trên máy (data_layer/datasets.py); repo public nên không commit
+/dashboard/datasets/

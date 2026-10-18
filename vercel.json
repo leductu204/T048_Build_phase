@@ -8,7 +8,7 @@
       "buildCommand": "cp -r ../sample_data_output1 ./sample_data_output1",
       "functions": {
         "api/main.py": {
-          "excludeFiles": "{web/**,views/**,app.py}"
+          "excludeFiles": "{web/**,views/**,app.py,push_dataset.py}"
         }
       }
     },

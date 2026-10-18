@@ -9,7 +9,7 @@ import { PageHeader } from "./components/PageHeader";
 import { ErrorState } from "./components/ui";
 import { ApiError, apiGet, type Meta } from "./lib/api";
 import { ThemeProvider } from "./lib/theme";
-import { demoParams, useView } from "./lib/view";
+import { sourceParams, useView } from "./lib/view";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
 import { DataStatusPage } from "./pages/DataStatusPage";
 import { IssueDetailPage } from "./pages/IssueDetailPage";
@@ -61,7 +61,7 @@ function PageRoute({ meta }: { meta: Meta }) {
 function Shell() {
   const { sp } = useView();
   const { search } = useLocation();
-  const params = demoParams(sp);
+  const params = sourceParams(sp);
   const meta = useQuery({
     queryKey: ["meta", params.toString()],
     queryFn: () => apiGet<Meta>("/meta", params),

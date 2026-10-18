@@ -31,6 +31,36 @@ function Brand() {
   );
 }
 
+/** Chọn bộ dữ liệu. Đổi bộ thì bỏ lựa chọn chỉ đúng với bộ cũ (annotator, issue đang xem). */
+function DatasetPicker({ meta }: { meta: Meta }) {
+  const { update } = useView();
+  if (meta.datasets.length === 0) return null;
+  const choose = (name: string) =>
+    update((next) => {
+      if (name) next.set("ds", name);
+      else next.delete("ds");
+      next.delete("annotator");
+      next.delete("issue");
+    });
+  return (
+    <label className="block shrink-0 px-5 pb-3">
+      <span className="mb-1.5 block text-[12px] font-medium text-muted">Bộ dữ liệu</span>
+      <select
+        value={meta.dataset}
+        onChange={(e) => choose(e.target.value)}
+        className="h-9 w-full rounded-lg border border-line-strong bg-surface px-2.5 text-[14px] text-ink focus-visible:border-accent"
+      >
+        <option value="">Mặc định</option>
+        {meta.datasets.map((name) => (
+          <option key={name} value={name}>
+            {name}
+          </option>
+        ))}
+      </select>
+    </label>
+  );
+}
+
 function Sidebar({ meta, onClose }: { meta: Meta; onClose?: () => void }) {
   const { sp } = useView();
   const { dark, setDark } = useTheme();
@@ -46,6 +76,7 @@ function Sidebar({ meta, onClose }: { meta: Meta; onClose?: () => void }) {
           </button>
         )}
       </div>
+      <DatasetPicker meta={meta} />
       <nav aria-label="Các trang" className="flex-1 overflow-y-auto px-3 pt-1 pb-5 [scrollbar-width:thin]">
         {meta.sections.map((section) => (
           <div key={section.title} className="mt-4 first:mt-1">

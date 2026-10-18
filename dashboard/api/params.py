@@ -1,4 +1,4 @@
-"""Tham số chung trên URL: công tắc dữ liệu giả và bộ lọc.
+"""Tham số chung trên URL: bộ dữ liệu, công tắc dữ liệu giả và bộ lọc.
 
 Bộ lọc dùng mã (phạm vi `b1_ctrl`, cỡ `small`), không dùng nhãn tiếng Việt, để URL ngắn và
 chia sẻ được. Ô lọc nào trang không dùng thì bị bỏ qua, giống hàng lọc bị khoá ở bản Streamlit.
@@ -8,10 +8,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import HTTPException, Query
+from fastapi import Depends, HTTPException, Query
 
 import settings as S
-from data_layer import store
+from data_layer import datasets, store
 from data_layer.filters import Filters
 
 
@@ -53,5 +53,12 @@ def selection(
     return Selection(scope, tuple(classes), tuple(S.SIZE_LABELS[s] for s in size), tuple(annotator), hide_sign)
 
 
-def dataset(demo: bool = False) -> store.Tables:
-    return store.load(demo)
+def source(ds: str = "") -> str:
+    """Tên bộ dữ liệu đang chọn; rỗng là bộ mặc định."""
+    if ds and ds not in datasets.names():
+        raise HTTPException(404, f"Không có bộ dữ liệu `{ds}`.")
+    return ds
+
+
+def dataset(ds: Annotated[str, Depends(source)], demo: bool = False) -> store.Tables:
+    return store.load(demo, datasets.folder(ds))

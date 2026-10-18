@@ -3,8 +3,8 @@
 Chạy từ thư mục dashboard/:
     uvicorn api.main:app --reload --port 8000
 
-Tham số chung: `demo=true` để xem bằng dữ liệu giả, `dark=true` để biểu đồ theo chế độ tối,
-và các bộ lọc ở api/params.py.
+Tham số chung: `ds=<tên bộ>` để chọn bộ dữ liệu (data_layer/datasets.py), `demo=true` để xem bằng
+dữ liệu giả, `dark=true` để biểu đồ theo chế độ tối, và các bộ lọc ở api/params.py.
 """
 from __future__ import annotations
 
@@ -17,12 +17,13 @@ import catalog
 import settings as S
 from api import blocks as B
 from api.pages import BUILDERS, PORTED, data_status, issue_detail
-from api.params import Selection, dataset, selection
-from data_layer import store
+from api.params import Selection, dataset, selection, source
+from data_layer import datasets, store
 from ui import theme
 
 app = FastAPI(title="M22 · Issue Analytics API")
 Data = Annotated[store.Tables, Depends(dataset)]
+Source = Annotated[str, Depends(source)]
 Sel = Annotated[Selection, Depends(selection)]
 ISSUE_PAGE = catalog.PAGES["chi-tiet-issue"]
 
@@ -33,14 +34,19 @@ def _no_ground_truth(_, error: FileNotFoundError):
                         content={"detail": f"Không tìm thấy bộ đáp án để dựng dữ liệu giả: {error.filename}"})
 
 
+@app.exception_handler(datasets.SourceError)
+def _no_blob(_, error: datasets.SourceError):
+    return JSONResponse(status_code=503, content={"detail": str(error)})
+
+
 def _icon(meta: dict) -> str:
     """":material/space_dashboard:" -> "space_dashboard" (tên trong bộ Material Symbols)."""
     return meta["icon"].removeprefix(":material/").removesuffix(":")
 
 
 @app.get("/api/meta")
-def meta(data: Data):
-    """Danh mục trang, chế độ dữ liệu và các lựa chọn của hàng lọc."""
+def meta(data: Data, ds: Source):
+    """Danh mục trang, bộ dữ liệu, chế độ dữ liệu và các lựa chọn của hàng lọc."""
     def page(path: str) -> dict:
         m = catalog.PAGES[path]
         kind, label, hint = data.badge(m["tables"])
@@ -49,6 +55,8 @@ def meta(data: Data):
                 "badge": {"kind": kind, "label": label, "hint": hint}}
 
     return {
+        "dataset": ds,
+        "datasets": datasets.names(),
         "mode": "real" if data.mode == store.REAL else "mock",
         "has_real_files": data.has_real_files,
         "n_real": sum(origin == store.REAL for origin in data.origin.values()),
@@ -103,8 +111,8 @@ def issue_image(issue_id: str, data: Data):
 
 
 @app.get("/api/data-status")
-def data_status_page(data: Data):
-    return data_status.build(data)
+def data_status_page(data: Data, ds: Source):
+    return data_status.build(data, datasets.where(ds))
 
 
 @app.get("/api/sample.zip")

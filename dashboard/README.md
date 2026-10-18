@@ -71,8 +71,27 @@ ngoài, nên VPS không cần ra internet. Dấu bốn góc khung (lớp `.brack
   `index.html` để React Router xử lý.
 
 Frontend gọi `/api/...` cùng domain nên không cần biến môi trường nào. Chạy thử cả hai cùng lúc:
-`vercel dev` ở thư mục gốc. Trên Vercel, ổ đĩa chỉ đọc được, nên muốn dùng dữ liệu thật thì commit
-bảng vào `dashboard/data_real/`.
+`vercel dev` ở thư mục gốc.
+
+## Nhiều bộ dữ liệu
+
+Ô **Bộ dữ liệu** ở thanh bên chọn bộ đang xem; bộ đang chọn nằm trên URL (`?ds=<tên>`), nên chia
+link là người nhận xem đúng bộ đó. Mỗi bộ gồm các bảng như ở `data_real/` và, nếu có, `images.zip`
+của chính bộ đó (thiếu thì ảnh lấy từ bộ đáp án). Các bộ dùng chung bảng mã, kể cả danh sách class.
+
+- **Mặc định**: `data_real/` như trước.
+- **Trên máy**: mỗi thư mục con của `dashboard/datasets/` là một bộ (thư mục này không commit).
+- **Trên Vercel**: dữ liệu thật không để trong repo (repo public) mà để ở Vercel Blob, store
+  **private**. Tạo store ở Vercel > Storage > Blob, nối với project; Vercel tự thêm biến môi trường
+  cho function. Đưa một bộ lên bằng:
+
+  ```
+  $env:BLOB_READ_WRITE_TOKEN = "<token ở tab .env.local của store>"
+  python dashboard/push_dataset.py bdd-lo2 duong/dan/thu-muc
+  ```
+
+  Chạy lại cùng tên để cập nhật. API chỉ hỏi lại danh sách trên Blob mỗi 5 phút (mỗi lần liệt kê
+  tính một thao tác Blob), nên bộ mới hoặc bản cập nhật có thể chờ tối đa vài phút mới hiện.
 
 ## Các trang
 

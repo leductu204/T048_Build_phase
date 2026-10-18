@@ -5,3 +5,5 @@ pandas>=2.0.0
 numpy>=1.24.0
 altair>=6.0.0
 Pillow>=9.5.0
+# Đọc các bộ dữ liệu trên Vercel Blob (data_layer/datasets.py). Bản trước 0.5.0 là gói khác cùng tên.
+vercel-blob>=0.5.0

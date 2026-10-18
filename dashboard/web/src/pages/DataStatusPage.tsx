@@ -6,7 +6,7 @@ import { KpiStrip } from "../components/Blocks";
 import { DataTable } from "../components/DataTable";
 import { ErrorState, Notice, PageSkeleton, Panel } from "../components/ui";
 import { apiGet, apiUrl, type Cell, type DataStatus, type Frame } from "../lib/api";
-import { demoParams, useView } from "../lib/view";
+import { sourceParams, useView } from "../lib/view";
 
 // Chữ ở cột "Nguồn" do backend ghi (data_layer/store.py: REAL, MOCK, ABSENT).
 const ORIGIN_DOT: Record<string, string> = { "Thật": "bg-good", "Giả": "bg-mock", "Chưa có": "border border-muted" };
@@ -100,7 +100,7 @@ function Contract({ tables }: { tables: DataStatus["contract"] }) {
 
 export function DataStatusPage() {
   const { sp } = useView();
-  const params = demoParams(sp);
+  const params = sourceParams(sp);
   const query = useQuery({
     queryKey: ["data-status", params.toString()],
     queryFn: () => apiGet<DataStatus>("/data-status", params),
@@ -114,7 +114,7 @@ export function DataStatusPage() {
     <div>
       <KpiStrip items={d.kpis.items} />
       <p className="mt-5 max-w-[52em] text-[14px] leading-relaxed text-ink2">
-        Thả bảng thật vào <Code>{d.folder}/</Code> với tên <Code>&lt;tên bảng&gt;.csv</Code> hoặc <Code>.parquet</Code>.
+        Bảng thật của bộ này nằm ở <Code>{d.folder}/</Code>, tên <Code>&lt;tên bảng&gt;.csv</Code> hoặc <Code>.parquet</Code>.
         Chỉ cần một file là dashboard chuyển sang số thật; bảng nào chưa có thì các trang ghi rõ còn chờ gì.
       </p>
       {d.notices.length > 0 && (

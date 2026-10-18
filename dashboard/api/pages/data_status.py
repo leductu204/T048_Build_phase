@@ -4,11 +4,9 @@ from api import blocks as B
 from data_layer import contract, schema, store
 
 
-def build(data: store.Tables) -> dict:
+def build(data: store.Tables, folder: str) -> dict:
+    """`folder`: nơi chứa bảng thật của bộ dữ liệu đang xem (datasets.where)."""
     n_real = sum(origin == store.REAL for origin in data.origin.values())
-    # Thư mục bảng thật có thể được trỏ ra ngoài project; khi đó hiện nguyên đường dẫn.
-    inside = S.PROJECT_DIR in S.REAL_DIR.parents
-    folder = S.REAL_DIR.relative_to(S.PROJECT_DIR).as_posix() if inside else str(S.REAL_DIR)
 
     notices = []
     if data.mode == store.MOCK and data.has_real_files:

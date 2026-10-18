@@ -3,8 +3,10 @@ import { useSearchParams } from "react-router";
 
 // Khoá của hàng lọc chung.
 const FILTER_KEYS = ["scope", "class", "size", "annotator", "hide_sign"];
+// Khoá chọn nguồn số liệu: bộ dữ liệu và công tắc dữ liệu giả.
+const SOURCE_KEYS = ["ds", "demo"];
 // Khoá gửi lên API. Các khoá khác (tables, type, issue...) chỉ dùng ở frontend.
-const API_KEYS = [...FILTER_KEYS, "demo"];
+const API_KEYS = [...FILTER_KEYS, ...SOURCE_KEYS];
 // Khoá giữ lại khi chuyển trang.
 const SHARED_KEYS = [...API_KEYS, "tables"];
 
@@ -44,9 +46,9 @@ export function apiParams(sp: URLSearchParams, extra: Extra = {}): URLSearchPara
   return out;
 }
 
-/** Chỉ công tắc dữ liệu giả: cho các request không phụ thuộc bộ lọc. */
-export function demoParams(sp: URLSearchParams): URLSearchParams {
-  return pick(sp, ["demo"]);
+/** Chỉ bộ dữ liệu và công tắc dữ liệu giả: cho các request không phụ thuộc bộ lọc. */
+export function sourceParams(sp: URLSearchParams): URLSearchParams {
+  return pick(sp, SOURCE_KEYS);
 }
 
 /** Phần query giữ lại khi bấm sang trang khác. */

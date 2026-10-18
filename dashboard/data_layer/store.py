@@ -36,6 +36,7 @@ class Tables:
     problems: dict[str, str]  # tên bảng -> vì sao chưa dùng được
     missing: dict[str, list[str]]  # tên bảng -> cột tuỳ chọn chưa có
     has_real_files: bool = False
+    images: Path = S.IMAGES_ZIP  # file zip chứa ảnh của các issue
 
     def __getitem__(self, name: str) -> pd.DataFrame:
         return self.frames[name]
@@ -83,9 +84,9 @@ class Tables:
         return sorted(names)
 
 
-def real_path(name: str) -> Path | None:
+def real_path(name: str, folder: Path | None = None) -> Path | None:
     for ext in (".parquet", ".csv"):
-        path = S.REAL_DIR / f"{name}{ext}"
+        path = (folder or S.REAL_DIR) / f"{name}{ext}"
         if path.exists():
             return path
     return None
@@ -107,7 +108,7 @@ def _read_real(path: str, mtime: float) -> pd.DataFrame:
 
 
 @lru_cache(maxsize=4)
-def _assemble(mode: str, files: tuple, version: tuple, has_real_files: bool) -> Tables:
+def _assemble(mode: str, files: tuple, version: tuple, has_real_files: bool, images: Path) -> Tables:
     if mode == REAL:
         raw = {name: _read_real(path, mtime) for name, path, mtime in files}
     else:
@@ -127,7 +128,7 @@ def _assemble(mode: str, files: tuple, version: tuple, has_real_files: bool) -> 
     if "issues" in frames:  # model của annotator lấy từ bảng annotators, pipeline không cần ghi lại
         models = frames["annotators"].set_index("annotator")["model"] if "annotators" in frames else {}
         frames["issues"]["model"] = frames["issues"]["annotator"].map(models)
-    return Tables(mode, frames, origin, problems, missing, has_real_files)
+    return Tables(mode, frames, origin, problems, missing, has_real_files, images)
 
 
 def _streamlit_demo() -> bool:
@@ -139,17 +140,22 @@ def _streamlit_demo() -> bool:
         return False
 
 
-def load(demo: bool | None = None) -> Tables:
-    """Nạp mọi bảng. `demo=True` bỏ qua file thật; `None` thì đọc công tắc của bản Streamlit."""
+def load(demo: bool | None = None, folder: Path | None = None) -> Tables:
+    """Nạp mọi bảng. `demo=True` bỏ qua file thật; `None` thì đọc công tắc của bản Streamlit.
+
+    `folder`: thư mục bảng thật của bộ dữ liệu đang chọn (data_layer/datasets.py), mặc định REAL_DIR.
+    """
     if demo is None:
         demo = _streamlit_demo()
-    paths = {name: real_path(name) for name in schema.TABLES}
+    folder = folder or S.REAL_DIR
+    paths = {name: real_path(name, folder) for name in schema.TABLES}
     files = tuple(sorted((name, str(path), path.stat().st_mtime) for name, path in paths.items() if path))
+    own_images = folder / "images.zip"
     with _lock:
         if files and not demo:
-            return _assemble(REAL, files, _code_version(), True)
+            return _assemble(REAL, files, _code_version(), True, own_images if own_images.exists() else S.IMAGES_ZIP)
         gt = (("ground_truth", str(S.GT_XML), S.GT_XML.stat().st_mtime),)
-        return _assemble(MOCK, gt, _code_version(), bool(files))
+        return _assemble(MOCK, gt, _code_version(), bool(files), S.IMAGES_ZIP)
 
 
 @lru_cache(maxsize=1)
